@@ -4,14 +4,18 @@ import { useEffect, useRef, useState } from "react";
 //ICONS
 import { IoIosSend } from "react-icons/io";
 import { MdEmojiEmotions } from "react-icons/md";
+import { useChat } from "../context/chatContext";
 
-function MessageBox({ updateMessages }) {
+
+function MessageBox() {
+
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [messageValue, setMessageValue] = useState("");
+  const {sendMessage} = useChat();
   const picker = useRef(null);
-  const sendMessage = () => {
+  const sendMessageToFriend = () => {
     if (messageValue) {
-      updateMessages(messageValue);
+      sendMessage(messageValue);
       setMessageValue("");
     }
   };
@@ -50,7 +54,7 @@ function MessageBox({ updateMessages }) {
           <MdEmojiEmotions size={25} color="gray" />
         </button>
         <button
-          onClick={sendMessage}
+          onClick={sendMessageToFriend}
           type="button"
           className="bg-indigo-400 hover:bg-indigo-600 rounded-md p-1"
           title="Send"

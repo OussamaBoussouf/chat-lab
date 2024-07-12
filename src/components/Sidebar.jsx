@@ -1,11 +1,22 @@
-import { useState } from "react";
 import profilImage from "../assets/img/profil-image.jpg";
 import avatar from "../assets/img/avatar-profil.png";
+import { useChat } from "../context/chatContext";
+import { useAuth } from "../context/authContext";
+import { useMemo, useState } from "react";
 
-const friends = ["Sam", "John", "Steven", "Carlose", "Sandy"];
+function Sidebar({ onSelect, selectedFriend, handleToggle, isOpen }) {
+  const { friends, changeChatRoom } = useChat();
+  const { user } = useAuth();
+  const [search, setSearch] = useState("");
 
-function Sidebar({ handleToggle, isOpen }) {
-  const [selectedFriend, setSelectedFriend] = useState(null);
+  const filteredFriends = useMemo(() => {
+    return friends.filter((friend) => friend.username.includes(search));
+  }, [friends, search]);
+
+  const handleClick = (friendId) => {
+    onSelect(true);
+    changeChatRoom(friendId);
+  };
 
   return (
     <>
@@ -24,7 +35,7 @@ function Sidebar({ handleToggle, isOpen }) {
               src={avatar}
               alt="profil image"
             />
-            <p className="text-white">Othman</p>
+            <p className="text-white">{user.userName}</p>
           </div>
         </div>
         {/* FRIEND LIST */}
@@ -33,14 +44,16 @@ function Sidebar({ handleToggle, isOpen }) {
             type="text"
             placeholder="Find a user"
             className="w-full p-2 h-[40px] outline-none text-white bg-transparent border-b-[1px]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
           <div className="h-[calc(100%-40px)] overflow-y-auto">
-            {friends.map((friend, index) => (
+            {filteredFriends.map((friend) => (
               <div
-                key={index}
-                onClick={() => setSelectedFriend(index)}
+                key={friend.id}
+                onClick={() => handleClick(friend.id)}
                 className={`flex items-center ${
-                  selectedFriend == index && "bg-slate-500 "
+                  friend.id === selectedFriend && "bg-slate-500"
                 } hover:bg-slate-500 cursor-pointer p-2`}
               >
                 <div className="relative">
@@ -48,14 +61,19 @@ function Sidebar({ handleToggle, isOpen }) {
                     width={60}
                     height={60}
                     className="w-[60px] h-[60px] rounded-full"
-                    src={profilImage}
+                    src={friend.profileImage ?? profilImage}
                     alt="profil image"
                   />
-                  <span className="absolute bottom-0 right-0 bg-green-400 border-[3px] border-light-navy w-4 h-4 block rounded-full"></span>
+                  <span
+                    className={`absolute bottom-0 right-0 ${
+                      friend.isConnected ? "bg-green-400" : "bg-gray-400"
+                    } border-[3px] border-light-navy w-4 h-4 block rounded-full`}
+                  ></span>
                 </div>
                 <div className="flex flex-col ms-4">
-                  <p className="font-bold text-white text-lg">{friend}</p>
-                  {/* <p className="text-white">I'm waiting.</p> */}
+                  <p className="font-bold text-white text-lg">
+                    {friend.username}
+                  </p>
                 </div>
               </div>
             ))}
@@ -78,7 +96,7 @@ function Sidebar({ handleToggle, isOpen }) {
                 src={profilImage}
                 alt="profil image"
               />
-              <p className="text-white">Othman</p>
+              <p className="text-white">{user.userName}</p>
               <button
                 type="button"
                 className="btn btn-sm ms-auto"
@@ -96,12 +114,11 @@ function Sidebar({ handleToggle, isOpen }) {
               className="w-full p-2 h-[40px] outline-none text-white bg-transparent border-b-[1px]"
             />
             <div className="h-[calc(100%-40px)] overflow-y-auto">
-              {friends.map((friend, index) => (
+              {filteredFriends.map((friend) => (
                 <div
-                  key={index}
-                  onClick={() => setSelectedFriend(index)}
+                  key={friend.id}
                   className={`flex items-center ${
-                    selectedFriend == index && "bg-slate-500 "
+                    selectedFriend == friend.id && "bg-slate-500 "
                   } hover:bg-slate-500 cursor-pointer p-2`}
                 >
                   <div className="relative">
@@ -109,14 +126,19 @@ function Sidebar({ handleToggle, isOpen }) {
                       width={60}
                       height={60}
                       className="w-[60px] h-[60px] rounded-full"
-                      src={profilImage}
+                      src={friend.profileImage ?? profilImage}
                       alt="profil image"
                     />
-                    <span className="absolute bottom-0 right-0 bg-green-400 w-3 h-3 block rounded-full"></span>
+                    <span
+                      className={`absolute bottom-0 right-0 ${
+                        friend.isConnected ? "bg-green-400" : "bg-gray-400"
+                      } border-[3px] border-light-navy w-4 h-4 block rounded-full`}
+                    ></span>
                   </div>
                   <div className="flex flex-col ms-4">
-                    <p className="font-bold text-white text-lg">{friend}</p>
-                    {/* <p className="text-white">I'm waiting.</p> */}
+                    <p className="font-bold text-white text-lg">
+                      {friend.username}
+                    </p>
                   </div>
                 </div>
               ))}

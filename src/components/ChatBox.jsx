@@ -1,34 +1,38 @@
+import { memo, useLayoutEffect, useRef } from "react";
 import profilImage from "../assets/img/profil-image.jpg";
-import { memo, useState } from "react";
+import { useChat } from "../context/chatContext";
 import MessageBox from "./MessageBox";
+import { useAuth } from "../context/authContext";
 
-const fakeMessages = [
-  {
-    name: "alex",
-    msg: "Hi how are you?",
-  },
-  {
-    name: "sam",
-    msg: "fine, how about you?",
-  },
-];
+function ChatBox({ selectRoom }) {
+  const { chatRoomMessages } = useChat();
+  const { user } = useAuth();
+  const chatBox = useRef(null);
 
-function ChatBox() {
+  useLayoutEffect(() => {
+    if (chatRoomMessages.length && chatBox.current.scrollHeight > 380 ) {
+      chatBox.current.scrollTop = chatBox.current.scrollHeight;
+    }
+  }, [chatRoomMessages]);
 
-  const [messages, setMessages] = useState(fakeMessages);
-
-  const updateMessages = (value) => {
-    setMessages([...messages, {name: "alex", msg: value}]);
+  if (!selectRoom) {
+    return (
+      <div className="grid place-content-center h-[440px] rounded-br-xl rounded-bl-xl sm:rounded-bl-none bg-blue-200">
+        <h2 className="text-3xl font-bold text-white text-center px-2">
+          Choose a chat to start the conversation
+        </h2>
+      </div>
+    );
   }
-
 
   return (
     <>
-      <div className="h-[380px] bg-blue-200 space-y-7 p-2 overflow-auto">
-        {messages.map((message, index) => (
-          <div  key={index}
+      <div ref={chatBox} className="h-[380px] bg-blue-200 space-y-7 p-2 overflow-auto">
+        {chatRoomMessages.map((message, index) => (
+          <div
+            key={index}
             className={`flex items-end chat gap-4 ${
-              message.name == "alex"
+              message.name == user.userName
                 ? "chat-end flex-row-reverse"
                 : "chat-start"
             }`}
@@ -44,7 +48,7 @@ function ChatBox() {
             </div>
             <div
               className={`chat-bubble ${
-                message.name == "alex"
+                message.name == user.userName
                   ? "bg-blue-400 text-white"
                   : "bg-white text-black"
               } `}
@@ -55,7 +59,7 @@ function ChatBox() {
         ))}
       </div>
       {/* SEND MESSAGE*/}
-      <MessageBox updateMessages={updateMessages}/>
+      <MessageBox />
     </>
   );
 }

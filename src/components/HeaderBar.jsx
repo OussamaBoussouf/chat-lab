@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { GoKebabHorizontal } from "react-icons/go";
 import { IoIosPersonAdd } from "react-icons/io";
 import { IoChatbubblesSharp } from "react-icons/io5";
@@ -90,4 +90,4 @@ function HeaderBar({ handleToggle }) {
   );
 }
 
-export default HeaderBar;
+export default memo(HeaderBar);

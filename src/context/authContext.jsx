@@ -3,9 +3,10 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 import { auth, db } from "../fireStore";
-import { addDoc, collection, doc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
 
@@ -34,16 +35,20 @@ export const AuthProvider = ({ children }) => {
         email,
         password
       );
-      const userId = signInUser.user.uid;
+
+      const userInfo = {
+        userId: signInUser.user.uid,
+        userName: signInUser.user.displayName,
+      };
 
       //UPDATE THE STATE OF CONNECTION
-      const userDoc = doc(db, "users", userId);
+      const userDoc = doc(db, "users", userInfo.userId);
       await updateDoc(userDoc, {
         isConnected: true,
       });
 
-      localStorage.setItem("user", JSON.stringify({ userId: userId }));
-      setUser({ userId: userId });
+      localStorage.setItem("user", JSON.stringify(userInfo));
+      setUser(userInfo);
       setLoading(false);
       navigate("/chat-room");
     } catch (err) {
@@ -64,18 +69,30 @@ export const AuthProvider = ({ children }) => {
         email,
         password
       );
-      const userId = createUser.user.uid;
-      await setDoc(doc(db, "users", userId), {
-        id: userId,
+
+      await updateProfile(auth.currentUser, {
+        displayName: username,
+      })
+        .then(() => console.log("Profile Updated"))
+        .catch((err) => console.log(err));
+
+      const userInfo = {
+        userId: createUser.user.uid,
+        userName: createUser.user.displayName,
+      };
+
+      await setDoc(doc(db, "users", userInfo.userId), {
+        id: userInfo.userId,
         username: username,
         profileImage: null,
         isConnected: true,
         friends: [],
       });
-      localStorage.setItem("user", JSON.stringify({ userId: userId }));
-      setUser({ userId: userId });
+      localStorage.setItem("user", JSON.stringify(userInfo));
+      setUser(userInfo);
       setLoading(false);
       navigate("/chat-room");
+      
     } catch (err) {
       setLoading(false);
       if (err instanceof FirebaseError) {
@@ -83,6 +100,7 @@ export const AuthProvider = ({ children }) => {
           return Promise.reject("This email is already in use");
         }
       }
+      console.log(err);
     }
   };
 
