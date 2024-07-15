@@ -6,12 +6,10 @@ import { IoIosSend } from "react-icons/io";
 import { MdEmojiEmotions } from "react-icons/md";
 import { useChat } from "../context/chatContext";
 
-
 function MessageBox() {
-
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [messageValue, setMessageValue] = useState("");
-  const {sendMessage} = useChat();
+  const { sendMessage } = useChat();
   const picker = useRef(null);
   const sendMessageToFriend = () => {
     if (messageValue) {
@@ -23,10 +21,7 @@ function MessageBox() {
   //WHEN CLICK OUTSIDE
   useEffect(() => {
     const handler = (e) => {
-      if (
-        isEmojiPickerOpen &&
-        !picker.current.contains(e.target)
-      ) {
+      if (isEmojiPickerOpen && !picker.current.contains(e.target)) {
         setIsEmojiPickerOpen((prev) => !prev);
       }
     };
@@ -64,7 +59,10 @@ function MessageBox() {
       </div>
       {/* EMOJI PICKER*/}
       {isEmojiPickerOpen && (
-        <div ref={picker} className="absolute right-14 bottom-[100%]">
+        <div
+          ref={picker}
+          className="absolute right-14 bottom-[100%]"
+        >
           <Picker
             data={data}
             perLine={7}

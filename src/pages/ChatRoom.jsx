@@ -6,7 +6,7 @@ import { ChatProvider } from "../context/chatContext";
 
 function ChatRoom() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectRoom, setSelectRoom] = useState(false);
+  const [selectRoom, setSelectRoom] = useState(null);
 
   const handleToggle = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -16,7 +16,7 @@ function ChatRoom() {
     <ChatProvider>
       <div className="flex items-center justify-center h-screen bg-blue-400">
         <Sidebar
-          selectedFriend={selectRoom}
+          selectedRoom={selectRoom}
           onSelect={setSelectRoom}
           handleToggle={handleToggle}
           isOpen={isSidebarOpen}

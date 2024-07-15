@@ -42,7 +42,7 @@ function ChatBox({ selectRoom }) {
                 w={50}
                 h={50}
                 className="w-[50px] h-[50px] rounded-full"
-                src={profilImage}
+                src={user.profilImage ? user.profilImage : profilImage}
                 alt="profil image"
               />
             </div>
@@ -51,7 +51,7 @@ function ChatBox({ selectRoom }) {
                 message.name == user.userName
                   ? "bg-blue-400 text-white"
                   : "bg-white text-black"
-              } `}
+              } break-all`}
             >
               {message.msg}
             </div>

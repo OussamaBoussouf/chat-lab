@@ -6,7 +6,9 @@ export const chatReducer = (state, action) => {
       return { ...state, roomId: action.payload };
     case "SET_FRIENDS":
       return { ...state, friends: action.payload };
+    case "SET_USERS":
+      return { ...state, users: action.payload }; 
     default:
-      break;
+      return 'Unsupported Request'
   }
 };

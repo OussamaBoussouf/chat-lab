@@ -9,6 +9,8 @@ import {
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { useEffect, useReducer } from "react";
@@ -21,27 +23,24 @@ const usersRef = collection(db, "users");
 export const useChatSource = () => {
   const { user } = useAuth();
 
-  const [{ friends, chatRoomMessages, roomId }, dispatch] = useReducer(
+  const [{ friends, chatRoomMessages, roomId, users }, dispatch] = useReducer(
     chatReducer,
     {
       friends: [],
       chatRoomMessages: [],
       roomId: "",
+      users: [],
     }
   );
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
+    const unsubscribe = onSnapshot(
+      doc(db, "users", `${user.userId}`),
+      async (doc) => {
         const myFriends = [];
-        const docRef = doc(db, "users", `${user.userId}`);
-        const docSnap = await getDoc(docRef);
-        const listOfFriends = docSnap.data().friends;
+        const listOfFriends = doc.data().friends;
         for (let i = 0; i < listOfFriends.length; i++) {
-          const myQuery = query(
-            usersRef,
-            where("id", "==", listOfFriends[i])
-          );
+          const myQuery = query(usersRef, where("id", "==", listOfFriends[i]));
           const querySnapshot = await getDocs(myQuery);
           querySnapshot.forEach((doc) => {
             myFriends.push(doc.data());
@@ -51,12 +50,32 @@ export const useChatSource = () => {
           type: "SET_FRIENDS",
           payload: myFriends,
         });
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = [];
+        const myQuery = query(usersRef, where("id", "!=", user.userId));
+        const usersDocs = await getDocs(myQuery);
+        usersDocs.forEach((doc) => {
+          users.push(doc.data());
+        });
+
+        dispatch({
+          type: "SET_USERS",
+          payload: users,
+        });
       } catch (err) {
         console.log(err);
       }
     };
 
-    fetchData();
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -68,7 +87,7 @@ export const useChatSource = () => {
       const messages = [];
       querySnapshot.forEach((doc) => {
         messages.push(doc.data());
-      })
+      });
       dispatch({
         type: "SET_MESSAGES",
         payload: messages,
@@ -76,6 +95,7 @@ export const useChatSource = () => {
     });
     return () => unsubscribe();
   }, [roomId]);
+
 
   const sendMessage = async (message) => {
     try {
@@ -114,7 +134,48 @@ export const useChatSource = () => {
     });
   };
 
-  const value = { friends, sendMessage, changeChatRoom, chatRoomMessages };
+  const createRoom = async (userId, friendId) => {
+    try {
+      await setDoc(doc(db, "rooms", `${userId}${friendId}`), {
+        id: `${userId}${friendId}`,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const addFriend = async (friendId) => {
+    try {
+      const userDocRef = doc(db, "users", user.userId);
+      const userDoc = (await getDoc(userDocRef)).data();
+      const userFriends = userDoc.friends;
+      userFriends.push(friendId);
+      await updateDoc(userDocRef, {
+        friends: userFriends,
+      });
+
+      const addedUserDocRef = doc(db, "users", friendId);
+      const addedUserDoc = (await getDoc(addedUserDocRef)).data();
+      const addedUserFriends = addedUserDoc.friends;
+      addedUserFriends.push(user.userId);
+      await updateDoc(addedUserDocRef, {
+        friends: addedUserFriends,
+      });
+
+      createRoom(user.userId, friendId);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const value = {
+    friends,
+    sendMessage,
+    changeChatRoom,
+    chatRoomMessages,
+    users,
+    addFriend,
+  };
 
   return value;
 };

@@ -2,28 +2,29 @@ import { memo, useState } from "react";
 import { GoKebabHorizontal } from "react-icons/go";
 import { IoIosPersonAdd } from "react-icons/io";
 import { IoChatbubblesSharp } from "react-icons/io5";
-import {useAuth} from "../context/authContext";
+import { useAuth } from "../context/authContext";
 import profilImage from "../assets/img/profil-image.jpg";
+import { useChat } from "../context/chatContext";
 
-const friends = ["Sam", "John", "Steven", "Carlose", "Sandy"];
+
 
 function HeaderBar({ handleToggle }) {
   const { logOut } = useAuth();
+  const { users, addFriend, friends } = useChat();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [listOfUsers, setListOfUsers] = useState([]);
-  const handleFilter = (value) => {
-    setSearch(value);
-    if (value === "") {
-      setListOfUsers([]);
-      return;
-    }
-    setListOfUsers(
-      friends.filter((ele) =>
-        ele.toLocaleLowerCase().includes(value.toLocaleLowerCase())
-      )
-    );
-  };
+
+  const filteredUsers = users.filter((user) =>
+    user.username.includes(search.toLowerCase())
+  );
+
+  const friendList = friends.map(friend => friend.id);
+
+
+  const onClick = (friendId) => {
+    addFriend(friendId);
+  }
+
   return (
     <>
       {/* CHAT HEADING */}
@@ -43,7 +44,12 @@ function HeaderBar({ handleToggle }) {
               <IoIosPersonAdd size={30} color="white" />
             )}
           </button>
-          <button onClick={logOut} type="button" title="Menu" className="btn btn-primary btn-sm">
+          <button
+            onClick={logOut}
+            type="button"
+            title="Menu"
+            className="btn btn-primary btn-sm"
+          >
             Log out
           </button>
         </div>
@@ -55,29 +61,32 @@ function HeaderBar({ handleToggle }) {
             type="search"
             placeholder="Find friends..."
             className="w-full h-10 py-1 px-2 rounded-md"
-            onChange={(e) => handleFilter(e.target.value)}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
           <div className="py-5 space-y-4">
-            {listOfUsers.length === 0 && search && (
+            {filteredUsers.length === 0 && search && (
               <p className="font-bold">Sorry no match found</p>
             )}
-            {listOfUsers.map((friend, index) => (
-              <div key={index} className="flex items-center">
+            {search && filteredUsers.map(friend => (
+              <div key={friend.id} className="flex items-center">
                 <div>
                   <img
                     width={45}
                     height={45}
                     className="w-[45px] h-[45px] rounded-full"
-                    src={profilImage}
+                    src={friend.profileImage ? friend.profileImage : profilImage}
                     alt="profil image"
                   />
                 </div>
                 <div className="flex flex-col ms-2">
-                  <p className="font-bold">{friend}</p>
+                  <p className="font-bold">{friend.username}</p>
                 </div>
                 <button
                   type="button"
                   className="ms-auto btn btn-sm btn-primary"
+                  disabled={friendList.includes(friend.id)}
+                  onClick = {() => onClick(friend.id)}
                 >
                   Add
                 </button>

@@ -4,19 +4,21 @@ import { useChat } from "../context/chatContext";
 import { useAuth } from "../context/authContext";
 import { useMemo, useState } from "react";
 
-function Sidebar({ onSelect, selectedFriend, handleToggle, isOpen }) {
+function Sidebar({ onSelect, selectedRoom, handleToggle, isOpen }) {
   const { friends, changeChatRoom } = useChat();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
+
 
   const filteredFriends = useMemo(() => {
     return friends.filter((friend) => friend.username.includes(search));
   }, [friends, search]);
 
   const handleClick = (friendId) => {
-    onSelect(true);
+    onSelect(friendId);
     changeChatRoom(friendId);
   };
+
 
   return (
     <>
@@ -29,10 +31,15 @@ function Sidebar({ onSelect, selectedFriend, handleToggle, isOpen }) {
           </p>
           <div className="flex items-center">
             <img
-              width={40}
-              height={40}
-              className="me-2 w-[40px] h-[40px] rounded-full"
-              src={avatar}
+              width={45}
+              height={45}
+              title="Upload profil image"
+              className="cursor-pointer me-2 w-[45px] h-[45px] rounded-full"
+              src={
+                user.profilImage
+                  ? user.profilImage
+                  : avatar
+              }
               alt="profil image"
             />
             <p className="text-white">{user.userName}</p>
@@ -53,7 +60,7 @@ function Sidebar({ onSelect, selectedFriend, handleToggle, isOpen }) {
                 key={friend.id}
                 onClick={() => handleClick(friend.id)}
                 className={`flex items-center ${
-                  friend.id === selectedFriend && "bg-slate-500"
+                  friend.id === selectedRoom && "bg-slate-500"
                 } hover:bg-slate-500 cursor-pointer p-2`}
               >
                 <div className="relative">
@@ -118,7 +125,7 @@ function Sidebar({ onSelect, selectedFriend, handleToggle, isOpen }) {
                 <div
                   key={friend.id}
                   className={`flex items-center ${
-                    selectedFriend == friend.id && "bg-slate-500 "
+                    selectedRoom == friend.id && "bg-slate-500 "
                   } hover:bg-slate-500 cursor-pointer p-2`}
                 >
                   <div className="relative">
