@@ -72,6 +72,8 @@ export const AuthProvider = ({ children }) => {
 
       await updateProfile(auth.currentUser, {
         displayName: username,
+        photoURL:
+          "https://firebasestorage.googleapis.com/v0/b/chat-app-5a631.appspot.com/o/avatar-img%2Favatar-profil.png?alt=media&token=da1f4689-0381-48ff-acad-dee16520ca00",
       })
         .then(() => console.log("Profile Updated"))
         .catch((err) => console.log(err));
@@ -84,7 +86,8 @@ export const AuthProvider = ({ children }) => {
       await setDoc(doc(db, "users", userInfo.userId), {
         id: userInfo.userId,
         username: username,
-        profileImage: null,
+        profileImage:
+          "https://firebasestorage.googleapis.com/v0/b/chat-app-5a631.appspot.com/o/avatar-img%2Favatar-profil.png?alt=media&token=da1f4689-0381-48ff-acad-dee16520ca00",
         isConnected: true,
         friends: [],
       });
@@ -92,7 +95,6 @@ export const AuthProvider = ({ children }) => {
       setUser(userInfo);
       setLoading(false);
       navigate("/chat-room");
-      
     } catch (err) {
       setLoading(false);
       if (err instanceof FirebaseError) {

@@ -12,6 +12,7 @@ function ChatRoom() {
     setIsSidebarOpen((prev) => !prev);
   };
 
+
   return (
     <ChatProvider>
       <div className="flex items-center justify-center h-screen bg-blue-400">

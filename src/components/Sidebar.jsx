@@ -1,8 +1,8 @@
-import profilImage from "../assets/img/profil-image.jpg";
 import avatar from "../assets/img/avatar-profil.png";
 import { useChat } from "../context/chatContext";
 import { useAuth } from "../context/authContext";
 import { useMemo, useState } from "react";
+import ProfilBar from "./ProfilBar";
 
 function Sidebar({ onSelect, selectedRoom, handleToggle, isOpen }) {
   const { friends, changeChatRoom } = useChat();
@@ -25,26 +25,7 @@ function Sidebar({ onSelect, selectedRoom, handleToggle, isOpen }) {
       {/*DESKTOP*/}
       <div className="hidden sm:block h-[500px] w-[300px]">
         {/* TOP LEFT HEADER */}
-        <div className="bg-dark-navy rounded-tl-xl flex items-center justify-between p-2 w-full h-[60px]">
-          <p className="hidden sm:block font-bold text-white">
-            Chat<span className="text-blue-500">lab</span>
-          </p>
-          <div className="flex items-center">
-            <img
-              width={45}
-              height={45}
-              title="Upload profil image"
-              className="cursor-pointer me-2 w-[45px] h-[45px] rounded-full"
-              src={
-                user.profilImage
-                  ? user.profilImage
-                  : avatar
-              }
-              alt="profil image"
-            />
-            <p className="text-white">{user.userName}</p>
-          </div>
-        </div>
+        <ProfilBar user={user}/>
         {/* FRIEND LIST */}
         <div className="h-[440px] bg-light-navy rounded-bl-xl">
           <input
@@ -60,15 +41,15 @@ function Sidebar({ onSelect, selectedRoom, handleToggle, isOpen }) {
                 key={friend.id}
                 onClick={() => handleClick(friend.id)}
                 className={`flex items-center ${
-                  friend.id === selectedRoom && "bg-slate-500"
+                  friend.id === selectedRoom && "bg-slate-500 pointer-events-none"
                 } hover:bg-slate-500 cursor-pointer p-2`}
               >
                 <div className="relative">
                   <img
-                    width={60}
-                    height={60}
-                    className="w-[60px] h-[60px] rounded-full"
-                    src={friend.profileImage ?? profilImage}
+                    width={55}
+                    height={55}
+                    className="w-[55px] h-[55px] rounded-full"
+                    src={friend.profileImage ? friend.profileImage : avatar}
                     alt="profil image"
                   />
                   <span

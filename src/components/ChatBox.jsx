@@ -1,16 +1,35 @@
-import { memo, useLayoutEffect, useRef } from "react";
-import profilImage from "../assets/img/profil-image.jpg";
+import { memo, useEffect, useRef, useState } from "react";
 import { useChat } from "../context/chatContext";
 import MessageBox from "./MessageBox";
 import { useAuth } from "../context/authContext";
+import { db } from "../fireStore";
+import { doc, onSnapshot } from "firebase/firestore";
+
 
 function ChatBox({ selectRoom }) {
-  const { chatRoomMessages } = useChat();
+  const { chatRoomMessages, loading } = useChat();
   const { user } = useAuth();
+  const [connectedUserImage, setConnectedUserImage] = useState("");
+  const [secondUserImage, setSecondUserImage] = useState("");
   const chatBox = useRef(null);
 
-  useLayoutEffect(() => {
-    if (chatRoomMessages.length && chatBox.current.scrollHeight > 380 ) {
+  useEffect(() => {
+    if (!selectRoom) return;
+    const unsubscribe = onSnapshot(doc(db, "users", selectRoom), (doc) => {
+      setSecondUserImage(doc.data().profileImage);
+    })
+    return () => unsubscribe();
+  }, [selectRoom]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, "users", user.userId), (doc) => {
+      setConnectedUserImage(doc.data().profileImage);
+    })
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (chatRoomMessages.length && chatBox.current.scrollHeight > 380) {
       chatBox.current.scrollTop = chatBox.current.scrollHeight;
     }
   }, [chatRoomMessages]);
@@ -24,10 +43,17 @@ function ChatBox({ selectRoom }) {
       </div>
     );
   }
+  
 
   return (
     <>
-      <div ref={chatBox} className="h-[380px] bg-blue-200 space-y-7 p-2 overflow-auto">
+      <div
+        ref={chatBox}
+        className="h-[380px] bg-blue-200 space-y-7 p-2 overflow-auto"
+      >
+        {loading && (
+          <span className="loading loading-dots loading-lg text-indigo-500 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></span>
+        )}
         {chatRoomMessages.map((message, index) => (
           <div
             key={index}
@@ -42,7 +68,13 @@ function ChatBox({ selectRoom }) {
                 w={50}
                 h={50}
                 className="w-[50px] h-[50px] rounded-full"
-                src={user.profilImage ? user.profilImage : profilImage}
+                src={
+                  user.userName == message.name
+                    ? connectedUserImage
+                    : secondUserImage
+                    // ? imageUrl
+                    // : avatar
+                }
                 alt="profil image"
               />
             </div>
