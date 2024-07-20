@@ -1,21 +1,39 @@
-import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
 import { useRef, useState } from "react";
-import { useChat } from "../context/chatContext";
 import OutsideClickHandler from "react-outside-click-handler";
 //ICONS
 import { IoIosSend } from "react-icons/io";
 import { MdEmojiEmotions } from "react-icons/md";
+import {
+  arrayUnion,
+  doc,
+  Timestamp,
+  updateDoc,
+} from "firebase/firestore";
+import { useAuth } from "../context/authContext";
+import { db } from "../fireStore";
+import { useChat } from "../context/chatContext";
+import { Data } from "emoji-mart";
 
 function MessageBox() {
+  const { user } = useAuth();
+  const { data } = useChat();
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [messageValue, setMessageValue] = useState("");
-  const { sendMessage } = useChat();
   const picker = useRef(null);
-  const sendMessageToFriend = () => {
-    if (messageValue) {
-      sendMessage(messageValue);
+  const sendMessageToFriend = async () => {
+    if (!messageValue) return;
+    try {
+      await updateDoc(doc(db, "rooms", data.roomId), {
+        messages: arrayUnion({
+          msg: messageValue,
+          name: user.displayName,
+          createdAt: Timestamp.now(),
+        })
+      });
       setMessageValue("");
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -37,11 +55,11 @@ function MessageBox() {
           >
             <MdEmojiEmotions size={25} color="gray" />
           </button>
-           {/* EMOJI PICKER*/}
+          {/* EMOJI PICKER*/}
           {isEmojiPickerOpen && (
             <div ref={picker} className="absolute right-14 bottom-[100%]">
               <Picker
-                data={data}
+                data={Data}
                 perLine={7}
                 onEmojiSelect={(e) => {
                   setMessageValue((prev) => `${prev} ${e.native} `);

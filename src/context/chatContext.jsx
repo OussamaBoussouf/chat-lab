@@ -1,5 +1,4 @@
-import { useContext, createContext } from "react";
-import { useChatSource } from "../hooks/useChatSource";
+import { useContext, createContext, useReducer } from "react";
 
 const ChatContext = createContext(null);
 
@@ -11,8 +10,24 @@ export function useChat() {
 }
 
 export const ChatProvider = ({ children }) => {
+  const INITIAL_STATE = {
+    roomId: null,
+    friend: {}
+  };
+
+  const chatReducer = (state, action) => {
+    switch (action.type) {
+      case "CHANGE_ROOM":
+        return { ...state, roomId: action.payload.combinedId, friend: action.payload.friendInfo };
+      default:
+        return state;
+    }
+  };
+
+  const [state , dispatch] = useReducer(chatReducer , INITIAL_STATE);
+
   return (
-    <ChatContext.Provider value={useChatSource()}>
+    <ChatContext.Provider value={{data:state, dispatch}}>
       {children}
     </ChatContext.Provider>
   );

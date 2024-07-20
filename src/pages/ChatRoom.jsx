@@ -6,7 +6,6 @@ import { ChatProvider } from "../context/chatContext";
 
 function ChatRoom() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectRoom, setSelectRoom] = useState(null);
 
   const handleToggle = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -15,10 +14,8 @@ function ChatRoom() {
 
   return (
     <ChatProvider>
-      <div className="flex items-center justify-center h-screen bg-blue-400">
+      <div className="overflow-hidden flex items-center justify-center h-screen bg-blue-400">
         <Sidebar
-          selectedRoom={selectRoom}
-          onSelect={setSelectRoom}
           handleToggle={handleToggle}
           isOpen={isSidebarOpen}
         />
@@ -26,7 +23,7 @@ function ChatRoom() {
           {/* CHAT HEADING */}
           <HeaderBar handleToggle={handleToggle} />
           {/* CONVERSATION BOX*/}
-          <ChatBox selectRoom={selectRoom}/>
+          <ChatBox/>
         </div>
       </div>
     </ChatProvider>

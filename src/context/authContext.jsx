@@ -5,10 +5,11 @@ import {
   signOut,
   updateProfile,
 } from "firebase/auth";
-import { auth, db } from "../fireStore";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { auth, db, storage } from "../fireStore";
+import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const AuthContext = createContext(undefined);
 
@@ -37,15 +38,9 @@ export const AuthProvider = ({ children }) => {
       );
 
       const userInfo = {
-        userId: signInUser.user.uid,
-        userName: signInUser.user.displayName,
+        uid: signInUser.user.uid,
+        displayName: signInUser.user.displayName,
       };
-
-      //UPDATE THE STATE OF CONNECTION
-      const userDoc = doc(db, "users", userInfo.userId);
-      await updateDoc(userDoc, {
-        isConnected: true,
-      });
 
       localStorage.setItem("user", JSON.stringify(userInfo));
       setUser(userInfo);
@@ -61,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signUp = async (username, email, password) => {
+  const signUp = async (username, email, password, avatar) => {
     setLoading(true);
     try {
       const createUser = await createUserWithEmailAndPassword(
@@ -69,28 +64,28 @@ export const AuthProvider = ({ children }) => {
         email,
         password
       );
-
+      const storageRef = ref(storage, `profil-images/${new Date().getTime()}`);
+      const snapshot = await uploadBytes(storageRef, avatar);
+      const downloadURL = await getDownloadURL(snapshot.ref);
       await updateProfile(auth.currentUser, {
         displayName: username,
-        photoURL:
-          "https://firebasestorage.googleapis.com/v0/b/chat-app-5a631.appspot.com/o/avatar-img%2Favatar-profil.png?alt=media&token=da1f4689-0381-48ff-acad-dee16520ca00",
-      })
-        .then(() => console.log("Profile Updated"))
-        .catch((err) => console.log(err));
+        photoURL: downloadURL,
+      });
 
       const userInfo = {
-        userId: createUser.user.uid,
-        userName: createUser.user.displayName,
+        uid: createUser.user.uid,
+        displayName: createUser.user.displayName,
       };
 
-      await setDoc(doc(db, "users", userInfo.userId), {
-        id: userInfo.userId,
-        username: username,
-        profileImage:
-          "https://firebasestorage.googleapis.com/v0/b/chat-app-5a631.appspot.com/o/avatar-img%2Favatar-profil.png?alt=media&token=da1f4689-0381-48ff-acad-dee16520ca00",
-        isConnected: true,
+      await setDoc(doc(db, "users", userInfo.uid), {
+        uid: userInfo.uid,
+        displayName: username,
+        photoURL: auth.currentUser.photoURL,
         friends: [],
       });
+
+      console.log(userInfo);
+
       localStorage.setItem("user", JSON.stringify(userInfo));
       setUser(userInfo);
       setLoading(false);
@@ -108,10 +103,6 @@ export const AuthProvider = ({ children }) => {
 
   const logOut = async () => {
     try {
-      const connectedUserDoc = doc(db, "users", user.userId);
-      await updateDoc(connectedUserDoc, {
-        isConnected: false,
-      });
       await signOut(auth);
       localStorage.removeItem("user");
       setUser(undefined);
