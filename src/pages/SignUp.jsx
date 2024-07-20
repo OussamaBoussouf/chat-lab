@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import signUpImg from "../assets/img/sign-up.jpg";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useAuth } from "../context/authContext";
+import emptyImage from "../assets/img/empty-image.jpg";
 
 function SignUp() {
   const {
@@ -11,13 +12,13 @@ function SignUp() {
     formState: { errors },
     watch,
   } = useForm();
-
+  const inputFile = useRef(null);
   const [error, setError] = useState("");
-
   const { loading, signUp } = useAuth();
-
-  const onSubmit = ({ username, email, password }) => {
-    signUp(username, email, password).catch((err) => {
+  const [selectedImage, setSelectedImage] = useState(undefined);
+  const [file, setFile] = useState(undefined);
+  const onSubmit = ({ username, email, password, avatar}) => {
+    signUp(username, email, password, avatar[0]).catch((err) => {
       setError(err);
     });
   };
@@ -33,7 +34,7 @@ function SignUp() {
 
   return (
     <div className="flex justify-center">
-    {/* IMAGE */}
+      {/* IMAGE */}
       <div className="hidden md:block w-1/2">
         <img
           className="h-screen object-cover w-full"
@@ -43,8 +44,13 @@ function SignUp() {
       </div>
       {/* Form */}
       <div className="w-[80vw] md:w-1/2 flex flex-col h-screen items-center justify-center">
-        <h1 className="text-3xl font-bold mb-5 text-center">Welcome to Chat<span className="text-blue-500">lab</span></h1>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 w-full max-w-[350px]">
+        <h1 className="text-3xl font-bold mb-5 text-center">
+          Welcome to Chat<span className="text-blue-500">lab</span>
+        </h1>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-5 w-full max-w-[350px]"
+        >
           <label className="input input-bordered flex items-center gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -112,9 +118,45 @@ function SignUp() {
               Password should be at least 6 charaters
             </span>
           )}
+
+          {/* AVATAR IMAGE */}
+          <label className="flex items-center cursor-pointer gap-2 w-fit">
+            <img
+              src={selectedImage ? selectedImage : emptyImage}
+              alt="empty image"
+              className="h-10 w-10 rounded-md"
+            />
+            <p className="ms-3 font-semibold flex-grow">
+              {file ? file.name : "Select an image"}
+            </p>
+            <input
+              ref={inputFile}
+              {...register("avatar", {
+                required: true,
+                onChange: (e) => {
+                  const file = e.target.files[0];
+                  setFile(file);
+                  setSelectedImage(
+                    file ? URL.createObjectURL(file) : undefined
+                  );
+                },
+              })}
+              aria-label="Select your avatar"
+              type="file"
+              className="w-0 h-0 opacity-0 overflow-hidden"
+            />
+          </label>
+          {errors.avatar?.type === "required" && (
+            <span className="text-red-500">Avatar is required</span>
+          )}
+
           {error && <span className="text-red-500">{error}</span>}
-          <button disabled={loading} type="submit" className="btn btn-neutral w-full">
-          {loading ? (
+          <button
+            disabled={loading}
+            type="submit"
+            className="btn btn-neutral w-full"
+          >
+            {loading ? (
               <span className="loading loading-spinner text-primary"></span>
             ) : (
               "Sign up"

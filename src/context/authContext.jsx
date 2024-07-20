@@ -3,11 +3,13 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile,
 } from "firebase/auth";
-import { auth, db } from "../fireStore";
-import { addDoc, collection, doc, setDoc, updateDoc } from "firebase/firestore";
+import { auth, db, storage } from "../fireStore";
+import { doc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const AuthContext = createContext(undefined);
 
@@ -34,16 +36,14 @@ export const AuthProvider = ({ children }) => {
         email,
         password
       );
-      const userId = signInUser.user.uid;
 
-      //UPDATE THE STATE OF CONNECTION
-      const userDoc = doc(db, "users", userId);
-      await updateDoc(userDoc, {
-        isConnected: true,
-      });
+      const userInfo = {
+        uid: signInUser.user.uid,
+        displayName: signInUser.user.displayName,
+      };
 
-      localStorage.setItem("user", JSON.stringify({ userId: userId }));
-      setUser({ userId: userId });
+      localStorage.setItem("user", JSON.stringify(userInfo));
+      setUser(userInfo);
       setLoading(false);
       navigate("/chat-room");
     } catch (err) {
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signUp = async (username, email, password) => {
+  const signUp = async (username, email, password, avatar) => {
     setLoading(true);
     try {
       const createUser = await createUserWithEmailAndPassword(
@@ -64,16 +64,30 @@ export const AuthProvider = ({ children }) => {
         email,
         password
       );
-      const userId = createUser.user.uid;
-      await setDoc(doc(db, "users", userId), {
-        id: userId,
-        username: username,
-        profileImage: null,
-        isConnected: true,
+      const storageRef = ref(storage, `profil-images/${new Date().getTime()}`);
+      const snapshot = await uploadBytes(storageRef, avatar);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      await updateProfile(auth.currentUser, {
+        displayName: username,
+        photoURL: downloadURL,
+      });
+
+      const userInfo = {
+        uid: createUser.user.uid,
+        displayName: createUser.user.displayName,
+      };
+
+      await setDoc(doc(db, "users", userInfo.uid), {
+        uid: userInfo.uid,
+        displayName: username,
+        photoURL: auth.currentUser.photoURL,
         friends: [],
       });
-      localStorage.setItem("user", JSON.stringify({ userId: userId }));
-      setUser({ userId: userId });
+
+      console.log(userInfo);
+
+      localStorage.setItem("user", JSON.stringify(userInfo));
+      setUser(userInfo);
       setLoading(false);
       navigate("/chat-room");
     } catch (err) {
@@ -83,15 +97,12 @@ export const AuthProvider = ({ children }) => {
           return Promise.reject("This email is already in use");
         }
       }
+      console.log(err);
     }
   };
 
   const logOut = async () => {
     try {
-      const connectedUserDoc = doc(db, "users", user.userId);
-      await updateDoc(connectedUserDoc, {
-        isConnected: false,
-      });
       await signOut(auth);
       localStorage.removeItem("user");
       setUser(undefined);
