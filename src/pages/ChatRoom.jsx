@@ -11,19 +11,17 @@ function ChatRoom() {
     setIsSidebarOpen((prev) => !prev);
   };
 
-
   return (
     <ChatProvider>
       <div className="overflow-hidden flex items-center justify-center h-screen bg-blue-400">
-        <Sidebar
-          handleToggle={handleToggle}
-          isOpen={isSidebarOpen}
-        />
-        <div className="h-[500px] relative w-[600px] rounded-tr-xl rounded-br-xl">
-          {/* CHAT HEADING */}
-          <HeaderBar handleToggle={handleToggle} />
-          {/* CONVERSATION BOX*/}
-          <ChatBox/>
+        <div className="relative flex items-center justify-center w-[95%]">
+          <Sidebar handleToggle={handleToggle} isOpen={isSidebarOpen} />
+          <div className="h-[500px] relative w-[600px] rounded-tr-xl rounded-br-xl">
+            {/* CHAT HEADING */}
+            <HeaderBar handleToggle={handleToggle} />
+            {/* CONVERSATION BOX*/}
+            <ChatBox />
+          </div>
         </div>
       </div>
     </ChatProvider>

@@ -1,6 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import "./App.css";
 import SignIn from "./pages/SignIn";
 const ChatRoom = lazy(() => import("./pages/ChatRoom"));
 const SignUp = lazy(() => import("./pages/SignUp"));

@@ -101,7 +101,7 @@ function Sidebar({ handleToggle, isOpen }) {
       >
         {isOpen && (
           <div
-            className={`sm:hidden left-0 top-1/2 -translate-y-1/2 fixed z-10 h-[500px] w-[70%]`}
+            className={`sm:hidden left-0 top-1/2 -translate-y-1/2 absolute z-10 h-[500px] w-[70%]`}
           >
             {/* TOP LEFT HEADER */}
             <ProfileBar
@@ -133,13 +133,13 @@ function Sidebar({ handleToggle, isOpen }) {
                       <img
                         width={55}
                         height={55}
-                        className="w-[55px] h-[55px] rounded-full"
+                        className="w-[45px] h-[45px] sm:w-[55px] sm:h-[55px] rounded-full"
                         src={friend.photoURL}
                         alt="profil image"
                       />
                     </div>
                     <div className="flex flex-col ms-4">
-                      <p className="font-bold text-white text-lg">
+                      <p className="font-bold text-white  sm:text-lg">
                         {friend.displayName}
                       </p>
                     </div>

@@ -85,7 +85,7 @@ function HeaderBar({ handleToggle }) {
     <>
       {/* CHAT HEADING */}
       <div className="bg-light-blue relative h-[60px] rounded-tl-xl sm:rounded-tl-none rounded-tr-xl flex items-center justify-between sm:justify-end px-3">
-        <button type="button" className="sm:hidden">
+        <button type="button" className="sm:hidden bg-transparent">
           <GoKebabHorizontal onClick={handleToggle} size={30} color="white" />
         </button>
         <div className="flex items-center gap-4">
@@ -96,8 +96,8 @@ function HeaderBar({ handleToggle }) {
           >
             <button
               type="button"
-              onClick={() => setIsDrawerOpen((prev) => !prev)}
-            >
+              className="bg-transparent"
+              onClick={() => setIsDrawerOpen((prev) => !prev)}            >
               {isDrawerOpen ? (
                 <IoChatbubblesSharp
                   size={30}
@@ -139,8 +139,7 @@ function HeaderBar({ handleToggle }) {
                         </div>
                         <button
                           type="button"
-                          className="ms-auto btn btn-sm btn-primary"
-                          disabled={friendList.includes(friend.uid)}
+                          className={`ms-auto btn btn-sm ${friendList.includes(friend.uid) ? 'pointer-events-none' : 'btn-primary'}`}
                           onClick={() => addFriendToList(friend.uid)}
                         >
                           Add

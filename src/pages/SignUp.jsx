@@ -9,25 +9,26 @@ function SignUp() {
   const {
     handleSubmit,
     register,
+    setError,
     formState: { errors },
     watch,
   } = useForm();
   const inputFile = useRef(null);
-  const [error, setError] = useState("");
+  const [serverError, setServerError] = useState("");
   const { loading, signUp } = useAuth();
   const [selectedImage, setSelectedImage] = useState(undefined);
   const [file, setFile] = useState(undefined);
-  const onSubmit = ({ username, email, password, avatar}) => {
+  const onSubmit = ({ username, email, password, avatar }) => {
     signUp(username, email, password, avatar[0]).catch((err) => {
-      setError(err);
+      setServerError(err);
     });
   };
 
   // RESET ERROR
   useEffect(() => {
     watch(() => {
-      if (error != " ") {
-        setError("");
+      if (serverError != " ") {
+        setServerError("");
       }
     });
   }, [watch]);
@@ -131,6 +132,7 @@ function SignUp() {
             </p>
             <input
               ref={inputFile}
+              accept="image/*"
               {...register("avatar", {
                 required: true,
                 onChange: (e) => {
@@ -139,6 +141,13 @@ function SignUp() {
                   setSelectedImage(
                     file ? URL.createObjectURL(file) : undefined
                   );
+                },
+                validate: {
+                  validateImage: (v) => {
+                    if (!v[0].type.includes("image")) {
+                      return "Please upload a valid image file";
+                    }
+                  },
                 },
               })}
               aria-label="Select your avatar"
@@ -149,8 +158,8 @@ function SignUp() {
           {errors.avatar?.type === "required" && (
             <span className="text-red-500">Avatar is required</span>
           )}
-
-          {error && <span className="text-red-500">{error}</span>}
+          {errors.avatar && <span className="text-red-500">{errors.avatar.message}</span>}
+          {serverError && <span className="text-red-500">{serverError}</span>}
           <button
             disabled={loading}
             type="submit"

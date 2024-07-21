@@ -84,8 +84,6 @@ export const AuthProvider = ({ children }) => {
         friends: [],
       });
 
-      console.log(userInfo);
-
       localStorage.setItem("user", JSON.stringify(userInfo));
       setUser(userInfo);
       setLoading(false);
