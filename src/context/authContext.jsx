@@ -81,8 +81,9 @@ export const AuthProvider = ({ children }) => {
         uid: userInfo.uid,
         displayName: username,
         photoURL: auth.currentUser.photoURL,
-        friends: [],
       });
+
+      await setDoc(doc(db, "userChats", userInfo.uid), {});
 
       localStorage.setItem("user", JSON.stringify(userInfo));
       setUser(userInfo);

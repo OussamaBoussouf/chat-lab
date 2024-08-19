@@ -7,6 +7,7 @@ import { MdEmojiEmotions } from "react-icons/md";
 import {
   arrayUnion,
   doc,
+  serverTimestamp,
   Timestamp,
   updateDoc,
 } from "firebase/firestore";
@@ -29,8 +30,27 @@ function MessageBox() {
           msg: messageValue,
           name: user.displayName,
           createdAt: Timestamp.now(),
-        })
+        }),
       });
+
+      await updateDoc(
+        doc(db, "userChats", user.uid),
+        {
+          [data.friend.uid + ".lastMessage"]: messageValue,
+          [data.friend.uid + ".date"]: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      await updateDoc(
+        doc(db, "userChats", data.friend.uid),
+        {
+          [user.uid + ".lastMessage"]: messageValue,
+          [user.uid + ".date"]: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
       setMessageValue("");
     } catch (err) {
       console.log(err);

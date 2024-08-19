@@ -4,9 +4,17 @@ import { IoIosPersonAdd } from "react-icons/io";
 import { IoChatbubblesSharp } from "react-icons/io5";
 import { useAuth } from "../context/authContext";
 import OutsideClickHandler from "react-outside-click-handler";
-import { db } from "../fireStore";
-import { arrayUnion, collection, doc, getDoc, onSnapshot, query, setDoc, updateDoc, where } from "firebase/firestore";
-
+import { auth, db } from "../fireStore";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
 const usersRef = collection(db, "users");
 
@@ -17,16 +25,13 @@ function HeaderBar({ handleToggle }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-
   useEffect(() => {
     const unsub = onSnapshot(
-      doc(db, "users", `${user.uid}`),
+      doc(db, "userChats", `${user.uid}`),
       async (doc) => {
         const myFriends = [];
-        const listOfFriends = doc.data().friends;
-        for (let i = 0; i < listOfFriends.length; i++) {
-          const friendDoc = await getDoc(listOfFriends[i]);
-          myFriends.push(friendDoc.data());
+        for (const key in doc.data()) {
+          myFriends.push(doc.data()[key]);
         }
         setFriends(myFriends);
       }
@@ -35,9 +40,7 @@ function HeaderBar({ handleToggle }) {
   }, []);
 
   useEffect(() => {
-    const queryAllUser = query(
-      usersRef, where("uid", "!=", user.uid)
-    );
+    const queryAllUser = query(usersRef, where("uid", "!=", user.uid));
     const unsub = onSnapshot(queryAllUser, (querySnapshot) => {
       const users = [];
       querySnapshot.forEach((doc) => {
@@ -54,20 +57,29 @@ function HeaderBar({ handleToggle }) {
   );
 
   //ADD NEW USER TO MY LIST OF FRIENDS
-  const addFriendToList = async (userId) => {
+  const addFriendToList = async (friend) => {
     try {
-      const userDocRef = doc(db, "users", user.uid);
-      const friendDocRef = doc(db, "users", userId);
-
-      await updateDoc(userDocRef, {
-        friends: arrayUnion(friendDocRef),
+      await updateDoc(doc(db, "userChats", friend.uid), {
+        [user.uid]: {
+          uid: auth.currentUser.uid,
+          displayName: auth.currentUser.displayName,
+          photoURL: auth.currentUser.photoURL,
+          date: serverTimestamp(),
+        },
       });
-      await updateDoc(friendDocRef, {
-        friends: arrayUnion(userDocRef),
+
+      await updateDoc(doc(db, "userChats", user.uid), {
+        [friend.uid]: {
+          uid: friend.uid,
+          displayName: friend.displayName,
+          photoURL: friend.photoURL,
+          date: serverTimestamp(),
+        },
       });
 
       //CREATE A CHAT ROOM
-      const combinedId = user.uid > userId ? user.uid + userId : userId + user.uid
+      const combinedId =
+        user.uid > friend.uid ? user.uid + friend.uid : friend.uid + user.uid;
       await setDoc(doc(db, "rooms", combinedId), {
         messages: [],
       });
@@ -97,7 +109,8 @@ function HeaderBar({ handleToggle }) {
             <button
               type="button"
               className="bg-transparent"
-              onClick={() => setIsDrawerOpen((prev) => !prev)}            >
+              onClick={() => setIsDrawerOpen((prev) => !prev)}
+            >
               {isDrawerOpen ? (
                 <IoChatbubblesSharp
                   size={30}
@@ -139,10 +152,16 @@ function HeaderBar({ handleToggle }) {
                         </div>
                         <button
                           type="button"
-                          className={`ms-auto btn btn-sm ${friendList.includes(friend.uid) ? 'pointer-events-none' : 'btn-primary'}`}
-                          onClick={() => addFriendToList(friend.uid)}
+                          className={`ms-auto btn btn-sm ${
+                            friendList.includes(friend.uid)
+                              ? "pointer-events-none"
+                              : "btn-primary"
+                          }`}
+                          onClick={() => addFriendToList(friend)}
                         >
-                          Add
+                          {friendList.includes(friend.uid)
+                            ? "Already friend"
+                            : "Add"}
                         </button>
                       </div>
                     ))}

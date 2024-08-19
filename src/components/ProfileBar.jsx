@@ -1,10 +1,12 @@
+import { memo } from "react";
 import { auth} from "../fireStore";
 import { IoClose } from "react-icons/io5";
+import { useAuth } from "../context/authContext";
 
 
 
-function ProfileBar({ user, handleToggle, isClose }) {
-
+function ProfileBar({ handleToggle, isClose }) {
+  const { user } = useAuth();
   return (
     <div className="bg-dark-navy rounded-tl-xl flex items-center justify-between p-2 w-full h-[60px]">
       <p className="hidden sm:block font-bold text-white">
@@ -34,4 +36,4 @@ function ProfileBar({ user, handleToggle, isClose }) {
   );
 }
 
-export default ProfileBar;
+export default memo(ProfileBar);

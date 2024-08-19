@@ -9,7 +9,6 @@ function SignUp() {
   const {
     handleSubmit,
     register,
-    setError,
     formState: { errors },
     watch,
   } = useForm();
