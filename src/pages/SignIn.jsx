@@ -10,6 +10,7 @@ function SignIn() {
     register,
     formState: { errors },
     watch,
+    setValue,
   } = useForm();
 
   const { loading, signIn } = useAuth();
@@ -19,6 +20,12 @@ function SignIn() {
     signIn(email, password).catch((err) => {
       setError(err);
     });
+  };
+
+  const handleAnonymousSignIn = (credentials) => {
+    setValue("email", credentials.email);
+    setValue("password", credentials.password);
+    onSubmit(credentials);
   };
 
   // RESET ERROR
@@ -89,6 +96,32 @@ function SignIn() {
             </span>
           )}
           {error && <span className="text-red-500">{error}</span>}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="btn flex-1"
+              onClick={() =>
+                handleAnonymousSignIn({
+                  email: "user1@user.com",
+                  password: 123456789,
+                })
+              }
+            >
+              Demo account user1
+            </button>
+            <button
+              type="button"
+              className="btn flex-1"
+              onClick={() =>
+                handleAnonymousSignIn({
+                  email: "user2@user.com",
+                  password: 123456789,
+                })
+              }
+            >
+              Demo account user2
+            </button>
+          </div>
           <button
             disabled={loading}
             type="submit"
